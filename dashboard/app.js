@@ -75,13 +75,9 @@ const alertasMsgs = {
    ════════════════════════════ */
 const MAX_HISTORICO = 100;
 
-let historicoAlertas = [
-  { tipo: 'verde',    msg: 'Todos os parâmetros normalizados.',                     time: '08:12' },
-  { tipo: 'amarelo',  msg: 'Temperatura elevada: 30.8°C. Verificar aeração.',       time: '06:44' },
-  { tipo: 'vermelho', msg: 'pH crítico: 6.9. Calagem recomendada imediatamente.',   time: '03:30' },
-  { tipo: 'amarelo',  msg: 'Turbidez em atenção: 34 NTU. Monitorar.',              time: '01:15' },
-  { tipo: 'verde',    msg: 'Sistema inicializado. Sensores calibrados.',            time: '00:00' }
-];
+/* Vazio até o Firebase/MQTT confirmar leituras reais — nunca mostrar
+   dados de exemplo como se fossem histórico real do viveiro. */
+let historicoAlertas = [];
 
 /* Filtro ativo no painel de histórico */
 let filtroAtivo = 'todos';
@@ -345,6 +341,11 @@ function renderAlertas(lista) {
   const filtrada = filtroAtivo === 'todos'
     ? lista
     : lista.filter(a => a.tipo === filtroAtivo);
+
+  if (filtrada.length === 0) {
+    el.innerHTML = '<div class="alert-vazio">Nenhum alerta registrado nas últimas 24h.</div>';
+    return;
+  }
 
   el.innerHTML = filtrada.slice(0, 20).map(a => {
     const labels    = { verde: 'OK', amarelo: 'ATENÇÃO', vermelho: 'CRÍTICO' };

@@ -349,7 +349,7 @@ async def verificar_e_alertar(bot: Bot, sensor_key: str, valor: float) -> None:
     try:
         await bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=mensagem)
         registrar_log(sensor_key, novo_nivel, valor, mensagem)
-        logger.info(f"Telegram ✓  {sensor_key} [{novo_nivel}] = {valor}")
+        logger.info(f"Telegram OK  {sensor_key} [{novo_nivel}] = {valor}")
     except Exception as e:
         logger.error(f"Erro ao enviar Telegram: {e}")
 

@@ -776,6 +776,13 @@ main {
   color: var(--text3);
 }
 
+.alert-vazio {
+  font-size: 12px;
+  color: var(--text3);
+  text-align: center;
+  padding: 16px 8px;
+}
+
 
 /* ── Fita colorimétrica ── */
 .fita-section { display: flex; flex-direction: column; gap: 10px; }
