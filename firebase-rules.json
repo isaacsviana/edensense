@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "viveiros": {
+      "$viveiro_id": {
+        "leituras": {
+          ".read": true,
+          ".write": true,
+          "$timestamp": {
+            ".validate": "newData.hasChildren(['temperatura', 'ph', 'turbidez', 'salinidade', 'timestamp']) && newData.child('temperatura').isNumber() && newData.child('ph').isNumber() && newData.child('turbidez').isNumber() && newData.child('salinidade').isNumber() && newData.child('timestamp').isNumber()"
+          }
+        }
+      }
+    }
+  }
+}

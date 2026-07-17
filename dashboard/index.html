@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <!-- SEGURANÇA: Content Security Policy — limita origens permitidas de scripts, estilos e conexões -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self' https://unpkg.com https://www.gstatic.com https://cdn.jsdelivr.net;
+                 connect-src 'self' wss://*.hivemq.cloud https://*.firebaseio.com https://firebaseio.com https://*.googleapis.com;
+                 style-src 'self' https://fonts.googleapis.com;
+                 font-src https://fonts.gstatic.com;
+                 img-src 'self' data:;">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EdenSense — Dashboard</title>
+
+  <!-- Preconnect para recursos externos (melhora performance em cold cache) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+
+  <!-- Fontes do Google -->
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Estilos do dashboard -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Banner "Adicione à tela inicial" — exibido apenas em celular (controlado por app.js) -->
+  <div class="banner-homescreen" id="bannerHomescreen" role="banner" aria-live="polite">
+    <span>&#128241; Adicione à tela inicial para acesso rápido ao viveiro</span>
+    <button class="banner-fechar" id="btnFecharBanner" aria-label="Fechar sugestão de adicionar à tela inicial">&#x2715;</button>
+  </div>
+
+  <!-- Indicador de sem conexão com contador (controlado por mqtt.js) -->
+  <div class="sem-conexao" id="semConexao" role="alert" aria-live="assertive" aria-atomic="true" style="display:none">
+    <span class="sem-conexao-icone" aria-hidden="true">&#9888;</span>
+    <span>Sem dados ·&nbsp;<span id="semConexaoTimer">0</span>s</span>
+  </div>
+
+  <!-- ════════════════════════════
+       HEADER MELHORADO
+       ════════════════════════════ -->
+  <header>
+    <!-- Logo com SVG IoT e subtítulo -->
+    <div class="logo">
+      <div class="logo-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none">
+          <!-- Folha -->
+          <path d="M12 2C15 5 18 9 17 14C16 17.5 13.5 19 12 20C10.5 19 8 17.5 7 14C6 9 9 5 12 2Z" fill="#00e87a" opacity="0.9"/>
+          <path d="M12 2L12 20" stroke="#005c30" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M11 9Q14 12 15 14" stroke="#005c30" stroke-width="0.9" stroke-linecap="round" fill="none" opacity="0.6"/>
+          <!-- Sinal IoT (arcos) -->
+          <path d="M16 1Q18.5 2.5 18.5 4Q18.5 5.5 16 7" stroke="#00b85f" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.8"/>
+          <path d="M17 2.2Q20 3.8 20 5.5Q20 7.2 17 8.8" stroke="#00e87a" stroke-width="0.8" fill="none" stroke-linecap="round" opacity="0.5"/>
+          <circle cx="15.5" cy="4" r="1" fill="#00e87a"/>
+        </svg>
+      </div>
+      <div class="logo-texto">
+        <span class="logo-name">Eden<span>Sense</span></span>
+        <span class="logo-sub">Carcinicultura IoT</span>
+      </div>
+    </div>
+
+    <!-- Centro: relógio em tempo real + indicador de qualidade geral -->
+    <div class="header-center" id="headerCenter">
+      <div class="header-clock" id="headerClock" aria-label="Hora atual">
+        <span id="clockTime">--:--:--</span>
+        <span class="clock-date" id="clockDate">--/--/----</span>
+      </div>
+      <div class="header-qualidade" id="headerQualidade" aria-label="Qualidade geral da água">
+        <span class="qualidade-dot" id="qualidadeDot" aria-hidden="true"></span>
+        <span id="qualidadeTexto">NORMAL</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Badge AO VIVO / MQTT -->
+      <div class="status-badge" id="statusBadge" role="status" aria-label="Status da conexão MQTT" aria-live="polite">
+        <div class="pulse" aria-hidden="true"></div>
+        AO VIVO
+      </div>
+      <!-- Badge Telegram -->
+      <div class="telegram-badge" id="telegramBadge"
+           aria-label="Notificações Telegram ativas" title="Notificações Telegram ativas">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" aria-hidden="true">
+          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.46c.537-.194 1.006.131.833.94z"/>
+        </svg>
+      </div>
+      <!-- Tag do viveiro -->
+      <div class="viveiro-tag" aria-label="Identificação do viveiro">VIVEIRO #01 · JAGUARIBE</div>
+      <!-- Botão de tela cheia -->
+      <button class="btn-fullscreen" id="btnFullscreen" aria-label="Alternar tela cheia">
+        <svg viewBox="0 0 20 20" fill="none" width="15" height="15" aria-hidden="true">
+          <path d="M3 3h5v2H5v3H3V3zm9 0h5v5h-2V5h-3V3zM3 12h2v3h3v2H3v-5zm12 3h-3v2h5v-5h-2v3z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Barra de silenciar alertas — aparece apenas quando status é vermelho -->
+  <div class="barra-silenciar" id="barraSilenciar" role="alertdialog" aria-label="Alerta crítico — opção de silenciar" style="display:none">
+    <span class="silenciar-icone" aria-hidden="true">&#128277;</span>
+    <span class="silenciar-texto">Parâmetro crítico detectado no viveiro.</span>
+    <button class="btn-silenciar" id="btnSilenciar" aria-label="Silenciar notificações de alerta por 30 minutos">
+      Silenciar por 30min
+    </button>
+    <span class="silenciar-timer" id="silenciarTimer" aria-live="polite" style="display:none"></span>
+  </div>
+
+
+  <!-- ════════════════════════════
+       CONTEÚDO PRINCIPAL
+       ════════════════════════════ -->
+  <main>
+
+    <!-- STATUS GERAL MELHORADO -->
+    <div class="section-label">// status geral do viveiro</div>
+    <div class="status-geral" id="statusGeral"
+         role="status" aria-live="polite" aria-atomic="true"
+         aria-label="Painel de status geral da qualidade da água">
+      <!-- Gradiente de fundo animado (controlado por app.js via data-status) -->
+      <div class="status-bg-anim" id="statusBgAnim" aria-hidden="true"></div>
+      <!-- Ícone que muda de acordo com o status (check/atenção/risco) -->
+      <div class="status-icon-wrap" id="statusIconWrap" aria-hidden="true">
+        <svg id="statusIconSvg" viewBox="0 0 24 24" fill="none" width="40" height="40">
+          <circle cx="12" cy="12" r="10" fill="rgba(0,232,122,0.12)" stroke="#00e87a" stroke-width="1.5"/>
+          <path d="M7 12l3.5 3.5L17 8" stroke="#00e87a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="status-info">
+        <div class="status-titulo">QUALIDADE DA ÁGUA</div>
+        <div class="status-valor" id="statusValor">NORMAL</div>
+        <!-- Tempo decorrido desde o último alerta -->
+        <div class="status-alerta-tempo" id="statusAlertaTempo" style="display:none"></div>
+      </div>
+      <div class="status-rec" id="statusRec">
+        <strong>Todos os parâmetros estão dentro dos limites ideais.</strong><br>
+        Continue monitorando regularmente. Próxima leitura com fita recomendada em 6h.
+      </div>
+      <div class="status-time" id="statusTime"></div>
+    </div>
+
+
+    <!-- CARDS DOS SENSORES — VISUAL PREMIUM -->
+    <div class="section-label">// leituras em tempo real</div>
+    <div class="sensores-grid">
+
+      <!-- Card Temperatura -->
+      <div class="sensor-card fade-in skeleton" id="card-temp"
+           aria-label="Sensor de temperatura — aguardando leitura" tabindex="0">
+        <div class="sensor-header">
+          <!-- Ícone SVG termômetro -->
+          <div class="sensor-icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+              <rect x="10" y="2" width="4" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="12" cy="17" r="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="11" y="7" width="2" height="7" rx="1" fill="currentColor" opacity="0.6"/>
+              <line x1="14" y1="6" x2="16" y2="6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+              <line x1="14" y1="9" x2="16" y2="9" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="sensor-nome">Temperatura</div>
+          <!-- Indicador de tendência: ↑ ↓ → atualizado por app.js -->
+          <div class="sensor-tendencia" id="tend-temp" aria-hidden="true"></div>
+          <div class="sensor-status-dot" aria-hidden="true"></div>
+        </div>
+        <div class="sensor-valor-row">
+          <span class="sensor-valor" id="val-temp">27.4</span>
+          <span class="sensor-unidade">°C</span>
+        </div>
+        <div class="sensor-faixa">FAIXA IDEAL: 23°C – 30°C</div>
+        <div class="sensor-bar" role="progressbar" aria-label="Temperatura na faixa ideal" aria-valuemin="23" aria-valuemax="30">
+          <div class="sensor-bar-fill" id="bar-temp" style="width:60%"></div>
+        </div>
+        <!-- Sparkline das últimas 10 leituras -->
+        <canvas class="sensor-sparkline" id="spark-temp" width="320" height="56" aria-hidden="true"></canvas>
+        <div class="sensor-alerta-txt" id="alerta-temp" role="alert" aria-live="polite"></div>
+        <!-- Tooltip com min/max/média da sessão -->
+        <div class="sensor-tooltip" id="tooltip-temp" aria-hidden="true">
+          <div class="tooltip-row"><span class="tooltip-label">Mín:</span><span id="tmin-temp">—</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">Máx:</span><span id="tmax-temp">—</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">Média:</span><span id="tavg-temp">—</span></div>
+        </div>
+      </div>
+
+      <!-- Card pH -->
+      <div class="sensor-card fade-in skeleton" id="card-ph"
+           aria-label="Sensor de pH — aguardando leitura" tabindex="0">
+        <div class="sensor-header">
+          <!-- Ícone SVG gota com pH -->
+          <div class="sensor-icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+              <path d="M12 3C12 3 6 9 6 14a6 6 0 0012 0C18 9 12 3 12 3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <text x="8.5" y="17" font-size="5.5" fill="currentColor" font-family="monospace" font-weight="700">pH</text>
+            </svg>
+          </div>
+          <div class="sensor-nome">pH</div>
+          <div class="sensor-tendencia" id="tend-ph" aria-hidden="true"></div>
+          <div class="sensor-status-dot" aria-hidden="true"></div>
+        </div>
+        <div class="sensor-valor-row">
+          <span class="sensor-valor" id="val-ph">7.8</span>
+          <span class="sensor-unidade">pH</span>
+        </div>
+        <div class="sensor-faixa">FAIXA IDEAL: 7.5 – 8.5</div>
+        <div class="sensor-bar" role="progressbar" aria-label="pH na faixa ideal" aria-valuemin="7.5" aria-valuemax="8.5">
+          <div class="sensor-bar-fill" id="bar-ph" style="width:50%"></div>
+        </div>
+        <canvas class="sensor-sparkline" id="spark-ph" width="320" height="56" aria-hidden="true"></canvas>
+        <div class="sensor-alerta-txt" id="alerta-ph" role="alert" aria-live="polite"></div>
+        <div class="sensor-tooltip" id="tooltip-ph" aria-hidden="true">
+          <div class="tooltip-row"><span class="tooltip-label">Mín:</span><span id="tmin-ph">—</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">Máx:</span><span id="tmax-ph">—</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">Média:</span><span id="tavg-ph">—</span></div>
+        </div>
+      </div>
+
+      <!-- Card Turbidez -->
+      <div class="sensor-card fade-in skeleton" id="card-turb"
+           aria-label="Sensor de turbidez — aguardando leitura" tabindex="0">
+        <div class="sensor-header">
+          <!-- Ícone SVG partículas na água -->
+          <div class="sensor-icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+              <path d="M3 19c0-2 2-4 5-5 1-3 3-5 4-5s3 2 4 5c3 1 5 3 5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="8" cy="9" r="1.2" fill="currentColor" opacity="0.6"/>
+              <circle cx="12" cy="6" r="1" fill="currentColor" opacity="0.8"/>
+              <circle cx="16" cy="9" r="1.2" fill="currentColor" opacity="0.6"/>
+              <circle cx="10" cy="12" r="0.8" fill="currentColor" opacity="0.5"/>
+              <circle cx="14" cy="12" r="0.8" fill="currentColor" opacity="0.5"/>
+            </svg>
+          </div>
+          <div class="sensor-nome">Turbidez</div>
+          <div class="sensor-tendencia" id="tend-turb" aria-hidden="true"></div>
+          <div class="sensor-status-dot" aria-hidden="true"></div>
+        </div>
+        <div class="sensor-valor-row">
+          <span class="sensor-valor" id="val-turb">18</span>
+          <span class="sensor-unidade">NTU</span>
+        </div>
+        <div class="sensor-faixa">FAIXA IDEAL: 0 – 30 NTU</div>
+        <div class="sensor-bar" role="progressbar" aria-label="Turbidez na faixa ideal" aria-valuemin="0" aria-valuemax="30">
+          <div class="sensor-bar-fill" id="bar-turb" style="width:35%"></div>
+        </div>
+        <canvas class="sensor-sparkline" id="spark-turb" width="320" height="56" aria-hidden="true"></canvas>
+        <div class="sensor-alerta-txt" id="alerta-turb" role="alert" aria-live="polite"></div>
+        <div class="sensor-tooltip" id="tooltip-turb" aria-hidden="true">
+          <div class="tooltip-row"><span class="tooltip-label">Mín:</span><span id="tmin-turb">—</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">Máx:</span><span id="tmax-turb">—</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">Média:</span><span id="tavg-turb">—</span></div>
+        </div>
+      </div>
+
+      <!-- Card Salinidade -->
+      <div class="sensor-card fade-in skeleton" id="card-sal"
+           aria-label="Sensor de salinidade — aguardando leitura" tabindex="0">
+        <div class="sensor-header">
+          <!-- Ícone SVG ondas -->
+          <div class="sensor-icone" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+              <path d="M3 12c1.5 0 1.5-2 3-2s1.5 2 3 2 1.5-2 3-2 1.5 2 3 2 1.5-2 3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+              <path d="M3 17c1.5 0 1.5-2 3-2s1.5 2 3 2 1.5-2 3-2 1.5 2 3 2 1.5-2 3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"/>
+              <path d="M3 7c1.5 0 1.5-2 3-2s1.5 2 3 2 1.5-2 3-2 1.5 2 3 2 1.5-2 3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.35"/>
+            </svg>
+          </div>
+          <div class="sensor-nome">Salinidade</div>
+          <div class="sensor-tendencia" id="tend-sal" aria-hidden="true"></div>
+          <div class="sensor-status-dot" aria-hidden="true"></div>
+        </div>
+        <div class="sensor-valor-row">
+          <span class="sensor-valor" id="val-sal">22</span>
+          <span class="sensor-unidade">ppt</span>
+        </div>
+        <div class="sensor-faixa">FAIXA IDEAL: 10 – 35 ppt</div>
+        <div class="sensor-bar" role="progressbar" aria-label="Salinidade na faixa ideal" aria-valuemin="10" aria-valuemax="35">
+          <div class="sensor-bar-fill" id="bar-sal" style="width:48%"></div>
+        </div>
+        <canvas class="sensor-sparkline" id="spark-sal" width="320" height="56" aria-hidden="true"></canvas>
+        <div class="sensor-alerta-txt" id="alerta-sal" role="alert" aria-live="polite"></div>
+        <div class="sensor-tooltip" id="tooltip-sal" aria-hidden="true">
+          <div class="tooltip-row"><span class="tooltip-label">Mín:</span><span id="tmin-sal">—</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">Máx:</span><span id="tmax-sal">—</span></div>
+          <div class="tooltip-row"><span class="tooltip-label">Média:</span><span id="tavg-sal">—</span></div>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- PAINEL DE RECOMENDAÇÕES AUTOMÁTICAS -->
+    <div class="section-label">// recomendações automáticas</div>
+    <div class="recomendacoes-panel" id="recomendacoesPanel">
+      <div class="rec-titulo">
+        <svg viewBox="0 0 24 24" fill="none" width="15" height="15" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="12" y1="8" x2="12" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="12" cy="16" r="1.2" fill="currentColor"/>
+        </svg>
+        Recomendações
+        <span class="rec-badge" id="recBadge" style="display:none">0</span>
+      </div>
+      <div class="rec-lista" id="recLista">
+        <div class="rec-item rec-ok">
+          <span class="rec-icone">&#9989;</span>
+          <span class="rec-texto">Todos os parâmetros dentro da faixa ideal. Continue monitorando.</span>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- SEÇÃO INFERIOR: HISTÓRICO + FITA -->
+    <div class="section-label">// histórico e visão computacional</div>
+    <div class="bottom-grid">
+
+      <!-- Painel de histórico com filtros por tipo -->
+      <div class="panel" id="panelHistorico">
+        <div class="panel-title">
+          Histórico de alertas
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:400">ÚLTIMAS 12H</span>
+        </div>
+        <!-- Filtros por severidade -->
+        <div class="historico-filtros" role="group" aria-label="Filtrar alertas por tipo">
+          <button class="filtro-btn ativo" data-filtro="todos" aria-pressed="true">
+            Todos <span class="filtro-count" id="cnt-todos">0</span>
+          </button>
+          <button class="filtro-btn" data-filtro="verde" aria-pressed="false">
+            <span class="filtro-dot dot-verde" aria-hidden="true"></span>OK
+            <span class="filtro-count" id="cnt-verde">0</span>
+          </button>
+          <button class="filtro-btn" data-filtro="amarelo" aria-pressed="false">
+            <span class="filtro-dot dot-amarelo" aria-hidden="true"></span>Atenção
+            <span class="filtro-count" id="cnt-amarelo">0</span>
+          </button>
+          <button class="filtro-btn" data-filtro="vermelho" aria-pressed="false">
+            <span class="filtro-dot dot-vermelho" aria-hidden="true"></span>Risco
+            <span class="filtro-count" id="cnt-vermelho">0</span>
+          </button>
+        </div>
+        <!-- Lista de alertas em formato timeline -->
+        <div class="alert-list" id="alertList" role="log" aria-label="Lista de alertas recentes" aria-live="polite"></div>
+      </div>
+
+      <!-- Painel da fita colorimétrica MELHORADO -->
+      <div class="panel">
+        <div class="panel-title">
+          Fita colorimétrica
+          <span style="font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:400">ESP32-CAM</span>
+        </div>
+        <div class="fita-section">
+
+          <!-- Resultado atual da fita -->
+          <div class="fita-resultado" id="fitaResultado">
+            <div class="fita-status">
+              <div class="fita-label">Última leitura</div>
+              <div class="fita-val" id="fitaUltima">há 4h 22min</div>
+            </div>
+            <div class="fita-status">
+              <div class="fita-label">pH (fita)</div>
+              <div class="fita-val">7.6</div>
+            </div>
+            <div class="fita-status">
+              <div class="fita-label">Amônia (fita)</div>
+              <div class="fita-val" style="color:var(--amber)">
+                <span aria-hidden="true">&#9888;</span> 0.5 mg/L
+                <span class="badge-alerta-texto" aria-label="Atenção">[ATENCAO]</span>
+              </div>
+            </div>
+            <div class="fita-status">
+              <div class="fita-label">Nitrato (fita)</div>
+              <div class="fita-val">5 mg/L</div>
+            </div>
+          </div>
+
+          <!-- Histórico das últimas leituras da fita -->
+          <div class="fita-historico">
+            <div class="fita-hist-titulo">Últimas leituras</div>
+            <div class="fita-hist-lista" id="fitaHistLista">
+              <!-- Preenchido por app.js -->
+            </div>
+          </div>
+
+          <button class="btn-fita" id="btnFita" onclick="simularFita()"
+                  aria-label="Realizar nova leitura colorimétrica com a fita ESP32-CAM">
+            + Realizar nova leitura com fita
+          </button>
+
+          <!-- Barra de progresso dos 7 segundos de análise -->
+          <div class="fita-progress-wrap" id="fitaProgressWrap" style="display:none" aria-hidden="true">
+            <div class="fita-progress-bar" id="fitaProgressBar" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- GRÁFICO HISTÓRICO (Chart.js 4.4.4) -->
+    <div class="section-label">// gráfico histórico — últimas 20 leituras</div>
+    <div class="grafico-section" id="graficoSection">
+      <div class="grafico-header">
+        <div class="grafico-titulo">
+          <svg viewBox="0 0 24 24" fill="none" width="15" height="15" aria-hidden="true">
+            <polyline points="3 17 9 11 13 15 21 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Histórico de leituras
+        </div>
+        <!-- Botões de seleção de sensor -->
+        <div class="grafico-botoes" role="group" aria-label="Selecionar sensor para o gráfico">
+          <button class="grafico-btn ativo" data-sensor="temp" onclick="EdenSenseChart.trocarSensor('temp')" aria-pressed="true">&#127777; Temp</button>
+          <button class="grafico-btn" data-sensor="ph" onclick="EdenSenseChart.trocarSensor('ph')" aria-pressed="false">&#128167; pH</button>
+          <button class="grafico-btn" data-sensor="turb" onclick="EdenSenseChart.trocarSensor('turb')" aria-pressed="false">&#127754; Turb</button>
+          <button class="grafico-btn" data-sensor="sal" onclick="EdenSenseChart.trocarSensor('sal')" aria-pressed="false">&#129474; Sal</button>
+        </div>
+      </div>
+      <div class="grafico-wrap">
+        <canvas id="graficoHistorico" aria-label="Gráfico histórico de leituras dos sensores" role="img"></canvas>
+      </div>
+      <div class="grafico-legenda" aria-hidden="true">
+        <span class="legenda-item">&#8212; Leituras reais</span>
+        <span class="legenda-item legenda-tracejado">- - Limite ideal</span>
+      </div>
+    </div>
+
+
+    <!-- INFORMAÇÕES DO VIVEIRO -->
+    <div class="section-label">// informações do viveiro</div>
+    <div class="viveiro-info-card" id="viveiroInfoCard">
+      <div class="viveiro-info-header">
+        <div class="viveiro-info-titulo">
+          <svg viewBox="0 0 24 24" fill="none" width="15" height="15" aria-hidden="true">
+            <path d="M3 21V7l9-4 9 4v14" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <rect x="9" y="12" width="6" height="9" stroke="currentColor" stroke-width="1.5" rx="1"/>
+          </svg>
+          Viveiro #01
+        </div>
+        <button class="viveiro-edit-btn" id="btnEditarViveiro" aria-label="Editar informações do viveiro">
+          <svg viewBox="0 0 24 24" fill="none" width="13" height="13" aria-hidden="true">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Editar
+        </button>
+      </div>
+      <div class="viveiro-info-grid">
+        <div class="viveiro-info-item">
+          <span class="viveiro-info-label">Localização</span>
+          <span class="viveiro-info-val">Vale do Jaguaribe · CE</span>
+        </div>
+        <div class="viveiro-info-item">
+          <span class="viveiro-info-label">Espécie</span>
+          <span class="viveiro-info-val">Litopenaeus vannamei</span>
+        </div>
+        <div class="viveiro-info-item">
+          <span class="viveiro-info-label">Área</span>
+          <span class="viveiro-info-val viveiro-editavel" id="viveiroArea" contenteditable="false">— ha</span>
+        </div>
+        <div class="viveiro-info-item">
+          <span class="viveiro-info-label">Última despesca</span>
+          <span class="viveiro-info-val viveiro-editavel" id="viveiroUltimaDespesca" contenteditable="false">—</span>
+        </div>
+        <div class="viveiro-info-item">
+          <span class="viveiro-info-label">Próx. despesca</span>
+          <span class="viveiro-info-val viveiro-editavel" id="viveiroPrxDespesca" contenteditable="false">—</span>
+        </div>
+        <div class="viveiro-info-item">
+          <span class="viveiro-info-label">Sistema</span>
+          <span class="viveiro-info-val">EdenSense IoT v0.1 MVP</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+
+  <!-- ════════════════════════════
+       FOOTER MELHORADO
+       ════════════════════════════ -->
+  <footer class="footer-novo">
+    <div class="footer-logo">
+      <svg viewBox="0 0 20 20" fill="none" width="16" height="16" aria-hidden="true">
+        <path d="M10 2C12.5 4 15 7 14 11C13.2 14 11 15.5 10 16C9 15.5 6.8 14 6 11C5 7 7.5 4 10 2Z" fill="#00e87a" opacity="0.8"/>
+        <path d="M10 2 L10 16" stroke="#005c30" stroke-width="1"/>
+      </svg>
+      <span>EdenSense</span>
+    </div>
+    <nav class="footer-nav" aria-label="Navegação do rodapé">
+      <a href="#statusGeral">Dashboard</a>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <a href="#graficoSection">Gráfico</a>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <a href="#viveiroInfoCard">Viveiro</a>
+    </nav>
+    <div class="footer-info">
+      <span id="footerFirmware">Firmware: v1.0.0</span>
+      &nbsp;·&nbsp;
+      <span id="footerUptime">Online: —</span>
+      &nbsp;·&nbsp;
+      <span id="footerAtualizacao">Última atualização: —</span>
+    </div>
+    <div class="footer-copy">
+      Desenvolvido por <strong>Isaac Viana</strong> — EdenSense &copy; 2026
+      &nbsp;·&nbsp; Carcinicultura Inteligente · Vale do Jaguaribe · CE
+    </div>
+  </footer>
+
+
+  <!-- ════════════════════════════
+       SCRIPTS
+       Ordem importa — NÃO alterar:
+       1. config.js    (credenciais MQTT)
+       2. Firebase SDK (CDN com SRI)
+       3. firebase.js  (EdenSense)
+       4. mqtt.js lib  (CDN com SRI)
+       5. Chart.js 4.4.4 (CDN com SRI)
+       6. chart.js     (módulo gráfico EdenSense)
+       7. mqtt.js      (EdenSense)
+       8. app.js       (lógica principal)
+       ════════════════════════════ -->
+
+  <!-- 1. Credenciais MQTT separadas — NÃO subir ao GitHub -->
+  <script src="config.js"></script>
+
+  <!-- 2. Firebase SDK v9 compat — SRI hash calculado em 10/06/2026 -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"
+          integrity="sha384-sEVIly94UBRLKWdkYoPpSG7GD/e79YHMrxVyZaOk712Ga7+EAw6w1EFi+xBzBdd+"
+          crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"
+          integrity="sha384-1/m+A1jVWbD3yiK3/vtFvm1+LjK1WLpSoDY+Kaxppwn/yP9BVSgdHTNQVOjrzUO5"
+          crossorigin="anonymous"></script>
+
+  <!-- 3. Módulo Firebase EdenSense -->
+  <script src="firebase.js"></script>
+
+  <!-- 4. Biblioteca MQTT via WebSocket — SRI verificado -->
+  <script src="https://unpkg.com/mqtt@5.15.1/dist/mqtt.min.js"
+          integrity="sha384-yYo6Rf8oE1ymBEWidpn7Brg0E6BGJiencXj3K2GmcU9dlFZ1fIhEqimYrhQij0r0"
+          crossorigin="anonymous"></script>
+
+  <!-- 5. Chart.js 4.4.4 — SRI calculado em 11/06/2026 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
+          integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt"
+          crossorigin="anonymous"></script>
+
+  <!-- Toast "Notificação enviada ao produtor" — controlado por mqtt.js -->
+  <div class="telegram-toast" id="telegramToast"
+       role="status" aria-live="polite" aria-atomic="true" style="display:none">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="#29B6F6" aria-hidden="true">
+      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.46c.537-.194 1.006.131.833.94z"/>
+    </svg>
+    <span>Notificação enviada ao produtor</span>
+  </div>
+
+  <!-- 6. Módulo do gráfico histórico EdenSense -->
+  <script src="chart.js"></script>
+
+  <!-- 7. Módulo MQTT EdenSense -->
+  <script src="mqtt.js"></script>
+
+  <!-- 8. Lógica principal do dashboard -->
+  <script src="app.js"></script>
+
+</body>
+</html>

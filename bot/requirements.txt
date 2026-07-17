@@ -1,0 +1,18 @@
+# ═══════════════════════════════════════════════════
+#  EdenSense — requirements.txt
+#  Dependências do servidor de notificações Telegram
+#
+#  Instalar com: pip install -r requirements.txt
+# ═══════════════════════════════════════════════════
+
+# Cliente MQTT para Python — conecta ao broker HiveMQ
+paho-mqtt>=1.6.1
+
+# SDK oficial do Telegram Bot (versão 20+ é async)
+python-telegram-bot>=20.0
+
+# Requisições HTTP — usado internamente pelo SDK
+requests>=2.28.0
+
+# Carrega variáveis de ambiente de arquivos .env (opcional)
+python-dotenv>=1.0.0

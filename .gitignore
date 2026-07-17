@@ -1,0 +1,43 @@
+# ═══════════════════════════════════════════════
+#  EdenSense — .gitignore
+#  Arquivos que NUNCA devem ser enviados ao GitHub
+# ═══════════════════════════════════════════════
+
+# Credenciais sensíveis — contêm tokens, senhas e chaves de API reais
+dashboard/config.js
+bot/config_telegram.py
+firmware/firmware.ino
+firmware/firmware.ino.bak
+
+# Credenciais Firebase (ativas — nunca subir ao GitHub)
+dashboard/firebase.js
+
+# Arquivo de variáveis de ambiente do bot
+bot/.env
+
+# Histórico de alertas gerado em tempo de execução
+bot/alertas_log.json
+alertas_log.json
+
+# Variáveis de ambiente
+.env
+.env.*
+*.env
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Dependências Node
+node_modules/
+
+# Logs e arquivos temporários
+*.log
+*.tmp
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini

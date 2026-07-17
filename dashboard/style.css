@@ -1,0 +1,1620 @@
+/* ═══════════════════════════════════════════
+   EdenSense Dashboard — style.css
+   Estilo principal do painel de monitoramento
+   ═══════════════════════════════════════════ */
+
+/* ── Variáveis de cor e fonte ── */
+:root {
+  --bg:        #080e0c;   /* fundo principal */
+  --bg2:       #0d1a14;   /* fundo dos cards */
+  --bg3:       #122019;   /* fundo dos itens internos */
+  --border:    #1e3028;   /* borda padrão */
+  --border2:   #2a4035;   /* borda de hover */
+  --green:     #00e87a;   /* verde principal (normal) */
+  --green2:    #00b85f;   /* verde médio */
+  --green3:    #005c30;   /* verde escuro */
+  --amber:     #f5a623;   /* amarelo (atenção) */
+  --red:       #ff4444;   /* vermelho (risco) */
+  --blue:      #3dd9ff;   /* azul info */
+  --text:      #e8f5ee;   /* texto principal */
+  --text2:     #7aab8a;   /* texto secundário */
+  --text3:     #4a7a5a;   /* texto terciário — levemente mais claro para WCAG AA */
+  --mono:      'Space Mono', monospace;   /* fonte técnica */
+  --display:   'Syne', sans-serif;        /* fonte de display */
+}
+
+/* ── Reset básico ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ── Corpo da página ── */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--display);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Grade decorativa de fundo ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,232,122,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,232,122,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Brilho ambiente no topo ── */
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(0,232,122,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+
+/* ════════════════════════════
+   BANNER "ADICIONE À TELA INICIAL"
+   Exibido apenas em celular,
+   controlado por app.js
+   ════════════════════════════ */
+.banner-homescreen {
+  display: none; /* app.js adiciona classe .visivel em mobile */
+  position: relative;
+  z-index: 20;
+  background: rgba(0,184,95,0.1);
+  border-bottom: 1px solid rgba(0,184,95,0.2);
+  padding: 8px 1rem;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.banner-homescreen.visivel {
+  display: flex;
+}
+
+.banner-fechar {
+  background: none;
+  border: none;
+  color: var(--text3);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.banner-fechar:hover { color: var(--text2); }
+
+
+/* ════════════════════════════
+   INDICADOR "SEM CONEXÃO"
+   Exibido como badge fixo quando
+   o MQTT desconecta
+   ════════════════════════════ */
+.sem-conexao {
+  position: fixed;
+  top: 70px;
+  right: 1rem;
+  background: rgba(255,68,68,0.12);
+  border: 1px solid rgba(255,68,68,0.35);
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #ff7070;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+
+.sem-conexao-icone { font-size: 13px; }
+
+
+/* ════════════════════════════
+   BADGE TELEGRAM NO HEADER
+   Ícone azul que indica bot ativo;
+   tooltip aparece no hover via CSS
+   ════════════════════════════ */
+.telegram-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: rgba(41,182,246,0.1);
+  border: 1px solid rgba(41,182,246,0.25);
+  border-radius: 8px;
+  color: #29B6F6;
+  cursor: default;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.telegram-badge:hover {
+  background: rgba(41,182,246,0.18);
+  border-color: rgba(41,182,246,0.45);
+}
+
+/* Tooltip do badge Telegram */
+.telegram-badge::after {
+  content: attr(title);
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 100;
+}
+
+.telegram-badge:hover::after { opacity: 1; }
+
+
+/* ════════════════════════════
+   TOAST "NOTIFICAÇÃO ENVIADA"
+   Aparece no canto inferior direito
+   por 5 segundos após um alerta
+   ════════════════════════════ */
+.telegram-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(13,26,20,0.95);
+  border: 1px solid rgba(41,182,246,0.35);
+  border-radius: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: #70d4f8;
+  z-index: 300;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  /* estado inicial: fora da tela */
+  transform: translateY(16px);
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
+
+/* Classe adicionada por mqtt.js para exibir o toast */
+.telegram-toast.visivel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Em telas pequenas, o toast fica acima do indicador de sem conexão */
+@media (max-width: 767px) {
+  .telegram-toast {
+    bottom: 4rem;
+    right: 0.75rem;
+    left: 0.75rem;
+    font-size: 11px;
+  }
+}
+
+
+/* ════════════════════════════
+   HEADER
+   ════════════════════════════ */
+header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,14,12,0.8);
+  backdrop-filter: blur(12px);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--green3);
+  border: 1px solid var(--green2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.logo-icon svg { width: 20px; height: 20px; }
+
+.logo-name {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+.logo-name span { color: var(--green); }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* Badge "AO VIVO" */
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--green);
+  background: rgba(0,232,122,0.08);
+  border: 1px solid rgba(0,232,122,0.2);
+  padding: 5px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+/* Ponto piscante do badge */
+.pulse {
+  width: 7px;
+  height: 7px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.8); }
+}
+
+.viveiro-tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Botão de tela cheia */
+.btn-fullscreen {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text2);
+  cursor: pointer;
+  padding: 7px 9px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-fullscreen:hover {
+  color: var(--green);
+  border-color: var(--border2);
+}
+
+
+/* ════════════════════════════
+   BARRA DE SILENCIAR ALERTAS
+   Aparece embaixo do header quando
+   o status geral está vermelho
+   ════════════════════════════ */
+.barra-silenciar {
+  position: relative;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 10px 2rem;
+  background: rgba(255,68,68,0.07);
+  border-bottom: 1px solid rgba(255,68,68,0.2);
+  font-size: 13px;
+  color: var(--text);
+  flex-wrap: wrap;
+}
+
+.silenciar-icone { font-size: 15px; }
+
+.silenciar-texto { flex: 1; min-width: 180px; }
+
+.btn-silenciar {
+  background: rgba(255,68,68,0.12);
+  border: 1px solid rgba(255,68,68,0.35);
+  border-radius: 8px;
+  color: #ff7070;
+  font-family: var(--display);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.btn-silenciar:hover { background: rgba(255,68,68,0.22); }
+
+.silenciar-timer {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+}
+
+
+/* ════════════════════════════
+   MAIN LAYOUT
+   ════════════════════════════ */
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+/* Label de seção (ex: // leituras em tempo real) */
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+
+/* ════════════════════════════
+   STATUS GERAL
+   ════════════════════════════ */
+.status-geral {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Barra lateral colorida do status */
+.status-geral::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+  background: var(--green);
+  border-radius: 4px 0 0 4px;
+}
+
+.status-geral.amarelo::before { background: var(--amber); }
+.status-geral.vermelho::before { background: var(--red); }
+
+.status-info { display: flex; flex-direction: column; gap: 4px; }
+
+.status-titulo {
+  font-size: 13px;
+  color: var(--text2);
+  font-family: var(--mono);
+  letter-spacing: 1px;
+}
+
+.status-valor {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--green);
+  letter-spacing: -1px;
+}
+
+.status-geral.amarelo .status-valor { color: var(--amber); }
+.status-geral.vermelho .status-valor { color: var(--red); }
+
+.status-rec {
+  font-size: 13px;
+  color: var(--text2);
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.status-rec strong { color: var(--text); font-weight: 600; }
+
+.status-time {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  text-align: right;
+  white-space: pre-line;
+}
+
+
+/* ════════════════════════════
+   GRID DE SENSORES
+   ════════════════════════════ */
+.sensores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.sensor-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  position: relative;
+  overflow: visible; /* permite tooltip sobressair */
+  transition: border-color 0.3s, transform 0.2s, box-shadow 0.3s;
+  cursor: default;
+}
+
+.sensor-card:hover {
+  border-color: var(--border2);
+  transform: translateY(-2px);
+}
+
+/* Tooltip de min/max — aparece no hover */
+.sensor-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 50;
+  transform: translateX(-50%) translateY(4px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.sensor-card:hover .sensor-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.tooltip-label { color: var(--text3); }
+
+/* Borda colorida de alerta */
+.sensor-card.alerta-amarelo { border-color: rgba(245,166,35,0.4); }
+
+/* Card vermelho pulsa na BORDA, não no fundo — indica risco sem piscar o conteúdo */
+.sensor-card.alerta-vermelho {
+  animation: pulse-borda 2s ease-in-out infinite;
+}
+
+@keyframes pulse-borda {
+  0%, 100% {
+    border-color: rgba(255,68,68,0.4);
+    box-shadow: 0 0 0 0 rgba(255,68,68,0);
+  }
+  50% {
+    border-color: rgba(255,68,68,0.85);
+    box-shadow: 0 0 0 4px rgba(255,68,68,0.08);
+  }
+}
+
+/* Linha inferior do card */
+.sensor-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--green);
+  opacity: 0.3;
+  border-radius: 0 0 14px 14px;
+}
+
+.sensor-card.alerta-amarelo::after { background: var(--amber); opacity: 0.5; }
+.sensor-card.alerta-vermelho::after { background: var(--red); opacity: 0.6; }
+
+.sensor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.sensor-nome {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--text3);
+  text-transform: uppercase;
+  flex: 1;
+  margin-left: 8px;
+}
+
+/* Ponto de status do sensor */
+.sensor-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.sensor-card.alerta-amarelo .sensor-status-dot { background: var(--amber); animation: pulse 1.5s infinite; }
+.sensor-card.alerta-vermelho .sensor-status-dot { background: var(--red); animation: pulse 1s infinite; }
+
+/* Valor numérico — transição suave ao atualizar */
+.sensor-valor {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -2px;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+  display: inline-block;
+}
+
+/* Animação de 0.5s disparada por app.js ao mudar o valor */
+.sensor-valor.valor-mudando {
+  animation: valor-atualiza 0.5s ease;
+}
+
+@keyframes valor-atualiza {
+  0%   { opacity: 1; }
+  25%  { opacity: 0.35; }
+  100% { opacity: 1; }
+}
+
+.sensor-unidade {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text2);
+  font-weight: 400;
+  margin-left: 4px;
+}
+
+.sensor-faixa {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 8px;
+}
+
+/* Barra de progresso do sensor */
+.sensor-bar {
+  margin-top: 12px;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.sensor-bar-fill {
+  height: 100%;
+  background: var(--green);
+  border-radius: 2px;
+  transition: width 1s ease;
+}
+
+.alerta-amarelo .sensor-bar-fill { background: var(--amber); }
+.alerta-vermelho .sensor-bar-fill { background: var(--red); }
+
+/* Texto de alerta dentro do card — inclui prefixo de ícone via app.js */
+.sensor-alerta-txt {
+  font-size: 11px;
+  color: var(--amber);
+  margin-top: 8px;
+  font-family: var(--mono);
+  display: none;
+  line-height: 1.4;
+}
+
+.alerta-amarelo .sensor-alerta-txt,
+.alerta-vermelho .sensor-alerta-txt { display: block; }
+.alerta-vermelho .sensor-alerta-txt { color: #ff7070; }
+
+
+/* ════════════════════════════
+   SKELETON LOADING
+   Exibido nos cards enquanto
+   aguarda 1ª leitura MQTT
+   ════════════════════════════ */
+.skeleton .sensor-valor,
+.skeleton .sensor-unidade {
+  color: transparent;
+  background: linear-gradient(90deg, var(--bg3) 25%, var(--border2) 50%, var(--bg3) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  border-radius: 6px;
+  user-select: none;
+}
+
+.skeleton .sensor-bar-fill {
+  background: linear-gradient(90deg, var(--bg3) 25%, var(--border2) 50%, var(--bg3) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s infinite linear;
+  width: 45% !important;
+}
+
+@keyframes skeleton-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+
+/* ════════════════════════════
+   SEÇÃO INFERIOR (2 colunas)
+   ════════════════════════════ */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+
+/* ════════════════════════════
+   PAINÉIS (histórico e fita)
+   ════════════════════════════ */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+}
+
+.panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+/* ── Lista de alertas ── */
+.alert-list { display: flex; flex-direction: column; gap: 8px; }
+
+.alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg3);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.alert-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.dot-verde    { background: var(--green); }
+.dot-amarelo  { background: var(--amber); }
+.dot-vermelho { background: var(--red); }
+
+/* Badge de texto de severidade (acessibilidade — não depende só de cor) */
+.alert-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.badge-verde    { background: rgba(0,232,122,0.15); color: var(--green); }
+.badge-amarelo  { background: rgba(245,166,35,0.15); color: var(--amber); }
+.badge-vermelho { background: rgba(255,68,68,0.15); color: #ff7070; }
+
+.alert-content { flex: 1; min-width: 0; }
+
+.alert-msg {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: 2px;
+  word-break: break-word;
+}
+
+.alert-time {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+}
+
+
+/* ── Fita colorimétrica ── */
+.fita-section { display: flex; flex-direction: column; gap: 10px; }
+
+.fita-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  gap: 8px;
+}
+
+.fita-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.fita-val {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+  text-align: right;
+}
+
+/* Badge de texto de alerta na fita (não depende só de cor) */
+.badge-alerta-texto {
+  font-size: 9px;
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* Botão de nova leitura */
+.btn-fita {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0,232,122,0.08);
+  border: 1px solid rgba(0,232,122,0.25);
+  border-radius: 10px;
+  color: var(--green);
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  letter-spacing: 0.5px;
+}
+
+.btn-fita:hover  { background: rgba(0,232,122,0.15); }
+.btn-fita:active { transform: scale(0.98); }
+.btn-fita:disabled { cursor: not-allowed; }
+
+/* Barra de progresso da fita (7 segundos de análise) */
+.fita-progress-wrap {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.fita-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green2), var(--green));
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+
+/* ════════════════════════════
+   FOOTER
+   ════════════════════════════ */
+footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 1.5rem;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+  line-height: 1.8;
+}
+
+
+/* ════════════════════════════
+   ANIMAÇÃO DE ENTRADA
+   ════════════════════════════ */
+.fade-in { animation: fadeIn 0.6s ease both; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.sensor-card:nth-child(1) { animation-delay: 0.05s; }
+.sensor-card:nth-child(2) { animation-delay: 0.10s; }
+.sensor-card:nth-child(3) { animation-delay: 0.15s; }
+.sensor-card:nth-child(4) { animation-delay: 0.20s; }
+
+
+/* ════════════════════════════
+   RESPONSIVIDADE — TABLET
+   768px a 1365px
+   Grade de sensores em 2x2
+   ════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1365px) {
+  .sensores-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  main { padding: 1.5rem 1.25rem; }
+
+  .status-valor { font-size: 24px; }
+}
+
+
+/* ════════════════════════════
+   RESPONSIVIDADE — CELULAR
+   320px a 767px
+   Cards em coluna única,
+   painel inferior empilhado
+   ════════════════════════════ */
+@media (max-width: 767px) {
+  /* Grid de sensores: coluna única */
+  .sensores-grid { grid-template-columns: 1fr; }
+
+  /* Painel inferior empilhado */
+  .bottom-grid { grid-template-columns: 1fr; }
+
+  /* Header compacto */
+  header { padding: 0.875rem 1rem; }
+  .header-right { gap: 0.5rem; }
+  .logo-name { font-size: 18px; }
+
+  /* Conteúdo com padding menor */
+  main { padding: 1rem; }
+
+  /* Status geral: empilha em coluna */
+  .status-geral {
+    padding: 1.25rem 1.25rem 1.25rem 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .status-valor { font-size: 22px; }
+  .status-time { text-align: left; }
+
+  /* Valor do sensor menor */
+  .sensor-valor { font-size: 34px; }
+
+  /* Barra de silenciar com menos padding */
+  .barra-silenciar { padding: 10px 1rem; }
+
+  /* Tooltip acima pode sair da tela — reposicionar para lado */
+  .sensor-tooltip {
+    left: auto;
+    right: 0;
+    transform: translateX(0) translateY(4px);
+    bottom: calc(100% + 6px);
+  }
+  .sensor-card:hover .sensor-tooltip {
+    transform: translateX(0) translateY(0);
+  }
+
+  /* Indicador sem conexão: fundo da tela para não cobrir conteúdo */
+  .sem-conexao {
+    top: auto;
+    bottom: 1rem;
+    right: 1rem;
+  }
+}
+
+
+/* ════════════════════════════
+   RESPONSIVIDADE — CELULAR PEQUENO
+   320px a 424px
+   Tamanhos mínimos absolutos
+   ════════════════════════════ */
+@media (max-width: 424px) {
+  /* Oculta tag do viveiro para economizar espaço */
+  .viveiro-tag { display: none; }
+
+  /* Logo ainda menor */
+  .logo-name { font-size: 16px; }
+  .logo-icon { width: 30px; height: 30px; }
+  .logo-icon svg { width: 16px; height: 16px; }
+
+  header { padding: 0.75rem 0.875rem; }
+
+  main { padding: 0.75rem; }
+
+  /* Valores dos sensores reduzidos */
+  .sensor-valor { font-size: 28px; letter-spacing: -1px; }
+  .sensor-unidade { font-size: 12px; }
+
+  /* Status geral compacto */
+  .status-valor { font-size: 20px; }
+  .status-geral { padding: 1rem 1rem 1rem 1.25rem; }
+  .status-rec { font-size: 12px; }
+
+  /* Cards com padding menor */
+  .sensor-card { padding: 1rem; }
+  .panel { padding: 1rem; }
+
+  /* Section labels menores */
+  .section-label { font-size: 9px; letter-spacing: 2px; }
+
+  /* Título dos painéis */
+  .panel-title { font-size: 12px; }
+
+  /* Botão fita */
+  .btn-fita { font-size: 12px; padding: 10px; }
+
+  /* Barra silenciar */
+  .barra-silenciar { padding: 8px 0.875rem; font-size: 12px; gap: 0.5rem; }
+  .btn-silenciar { font-size: 11px; padding: 5px 10px; }
+
+  /* Footer compacto */
+  footer { font-size: 9px; padding: 1rem; }
+}
+
+
+/* ════════════════════════════════════════
+   NOVOS ESTILOS — OVERHAUL APRESENTAÇÃO
+   ════════════════════════════════════════ */
+
+/* ── Subtítulo do logo ── */
+.logo-texto { display: flex; flex-direction: column; gap: 0; }
+.logo-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* ── Centro do header: relógio + qualidade ── */
+.header-center {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.header-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  cursor: default;
+}
+
+#clockTime {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 2px;
+}
+
+.clock-date {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 1px;
+}
+
+.header-qualidade {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--green);
+  background: rgba(0,232,122,0.06);
+  border: 1px solid rgba(0,232,122,0.18);
+  padding: 4px 10px;
+  border-radius: 14px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  transition: color 0.4s, border-color 0.4s, background 0.4s;
+}
+
+.header-qualidade.amarelo {
+  color: var(--amber);
+  background: rgba(245,166,35,0.06);
+  border-color: rgba(245,166,35,0.2);
+}
+
+.header-qualidade.vermelho {
+  color: var(--red);
+  background: rgba(255,68,68,0.06);
+  border-color: rgba(255,68,68,0.2);
+}
+
+.qualidade-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+
+.header-qualidade.amarelo .qualidade-dot { background: var(--amber); }
+.header-qualidade.vermelho .qualidade-dot { background: var(--red); }
+
+
+/* ── Ícone de sensor SVG ── */
+.sensor-icone {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,232,122,0.08);
+  border: 1px solid rgba(0,232,122,0.18);
+  border-radius: 8px;
+  color: var(--green);
+  flex-shrink: 0;
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.alerta-amarelo .sensor-icone { color: var(--amber); background: rgba(245,166,35,0.08); border-color: rgba(245,166,35,0.2); }
+.alerta-vermelho .sensor-icone { color: var(--red); background: rgba(255,68,68,0.08); border-color: rgba(255,68,68,0.2); }
+
+/* ── Linha de valor + unidade ── */
+.sensor-valor-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+/* ── Indicador de tendência ── */
+.sensor-tendencia {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  min-width: 18px;
+  text-align: center;
+  transition: color 0.3s;
+}
+
+.tend-up   { color: var(--red); }
+.tend-down { color: var(--blue); }
+.tend-ok   { color: var(--text3); }
+
+
+/* ── Sparkline Canvas ── */
+.sensor-sparkline {
+  width: 100%;
+  height: 40px;
+  margin-top: 10px;
+  display: block;
+  opacity: 0.75;
+}
+
+/* ── Tooltip com rows ── */
+.sensor-tooltip {
+  min-width: 130px;
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  line-height: 1.7;
+}
+
+
+/* ── Status geral: fundo animado ── */
+.status-bg-anim {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  pointer-events: none;
+  transition: opacity 0.8s;
+  opacity: 0;
+}
+
+.status-geral.verde-anim .status-bg-anim {
+  background: radial-gradient(ellipse at 10% 50%, rgba(0,232,122,0.07) 0%, transparent 70%);
+  opacity: 1;
+}
+
+.status-geral.amarelo .status-bg-anim {
+  background: radial-gradient(ellipse at 10% 50%, rgba(245,166,35,0.07) 0%, transparent 70%);
+  opacity: 1;
+}
+
+.status-geral.vermelho .status-bg-anim {
+  background: radial-gradient(ellipse at 10% 50%, rgba(255,68,68,0.07) 0%, transparent 70%);
+  opacity: 1;
+  animation: pulse-bg-red 3s ease-in-out infinite;
+}
+
+@keyframes pulse-bg-red {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ── Status geral: ícone SVG central ── */
+.status-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Tempo desde o último alerta ── */
+.status-alerta-tempo {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+
+/* ── Painel de Recomendações ── */
+.recomendacoes-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.rec-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.rec-badge {
+  background: rgba(255,68,68,0.15);
+  color: #ff7070;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+.rec-lista { display: flex; flex-direction: column; gap: 8px; }
+
+.rec-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rec-ok      { background: rgba(0,232,122,0.05); border-color: rgba(0,232,122,0.15); color: var(--text2); }
+.rec-amarelo { background: rgba(245,166,35,0.05); border-color: rgba(245,166,35,0.2); color: var(--amber); }
+.rec-vermelho{ background: rgba(255,68,68,0.05); border-color: rgba(255,68,68,0.2); color: #ff7070; }
+
+.rec-icone { font-size: 14px; flex-shrink: 0; }
+.rec-texto { flex: 1; }
+
+
+/* ── Filtros do histórico ── */
+.historico-filtros {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.filtro-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.filtro-btn:hover {
+  border-color: var(--border2);
+  color: var(--text);
+}
+
+.filtro-btn.ativo {
+  background: rgba(0,232,122,0.1);
+  border-color: rgba(0,232,122,0.3);
+  color: var(--green);
+}
+
+.filtro-count {
+  background: var(--border);
+  color: var(--text3);
+  border-radius: 8px;
+  padding: 0 5px;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.filtro-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+
+/* ── Fita: grid de resultados 2x2 ── */
+.fita-resultado {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* ── Fita: histórico ── */
+.fita-historico { margin-bottom: 8px; }
+
+.fita-hist-titulo {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.fita-hist-lista { display: flex; flex-direction: column; gap: 4px; }
+
+.fita-hist-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  gap: 8px;
+}
+
+.fita-hist-hora { color: var(--text3); flex-shrink: 0; }
+.fita-hist-ph   { color: var(--green); flex-shrink: 0; }
+
+
+/* ── Seção do Gráfico ── */
+.grafico-section {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.grafico-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.grafico-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.grafico-botoes {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.grafico-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.grafico-btn:hover { border-color: var(--border2); color: var(--text); }
+
+.grafico-btn.ativo {
+  background: rgba(0,232,122,0.1);
+  border-color: rgba(0,232,122,0.3);
+  color: var(--green);
+}
+
+.grafico-wrap {
+  position: relative;
+  height: 220px;
+}
+
+.grafico-legenda {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 10px;
+  justify-content: flex-end;
+}
+
+.legenda-item {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+}
+
+.legenda-tracejado { letter-spacing: 1px; }
+
+
+/* ── Viveiro Info Card ── */
+.viveiro-info-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.viveiro-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.viveiro-info-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.viveiro-edit-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.viveiro-edit-btn:hover { color: var(--green); border-color: rgba(0,232,122,0.3); }
+
+.viveiro-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.viveiro-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.viveiro-info-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.viveiro-info-val {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.viveiro-editavel[contenteditable="true"] {
+  outline: none;
+  border-bottom: 1px dashed var(--green);
+  color: var(--green);
+}
+
+
+/* ── Footer melhorado ── */
+.footer-novo {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 1.75rem 1.5rem;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+  font-family: var(--display);
+}
+
+.footer-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-nav a {
+  color: var(--text3);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-nav a:hover { color: var(--green); }
+
+.footer-sep { opacity: 0.4; }
+
+.footer-info { color: var(--text3); opacity: 0.7; }
+
+.footer-copy { opacity: 0.5; }
+.footer-copy strong { color: var(--text2); font-weight: 600; }
+
+
+/* ════════════════════════════
+   RESPONSIVIDADE — novas seções
+   ════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1365px) {
+  .header-center { display: none; } /* oculta relógio em tablet médio — preserva espaço */
+  .fita-resultado { grid-template-columns: 1fr 1fr; }
+  .grafico-wrap { height: 200px; }
+}
+
+@media (max-width: 767px) {
+  .header-center { display: none; } /* relógio no status-time já cobre */
+
+  .sensores-grid { gap: 0.75rem; }
+
+  .sensor-icone { width: 28px; height: 28px; }
+
+  .recomendacoes-panel { padding: 1rem; }
+  .rec-lista { gap: 6px; }
+
+  .historico-filtros { gap: 5px; }
+  .filtro-btn { font-size: 9px; padding: 4px 8px; }
+
+  .fita-resultado { grid-template-columns: 1fr; }
+
+  .grafico-section { padding: 1rem; }
+  .grafico-wrap { height: 180px; }
+  .grafico-botoes { gap: 4px; }
+  .grafico-btn { font-size: 9px; padding: 4px 8px; }
+
+  .viveiro-info-card { padding: 1rem; }
+  .viveiro-info-grid { grid-template-columns: 1fr 1fr; }
+
+  .footer-novo { padding: 1.25rem 1rem; font-size: 9px; gap: 8px; }
+  .footer-logo { font-size: 12px; }
+}
+
+@media (max-width: 424px) {
+  .logo-sub { display: none; } /* subtítulo do logo some em telas muito pequenas */
+
+  .sensor-icone { display: none; } /* ícone some para ganhar espaço */
+
+  .sensor-tendencia { font-size: 14px; }
+
+  .fita-resultado { grid-template-columns: 1fr; }
+
+  .viveiro-info-grid { grid-template-columns: 1fr; }
+
+  .grafico-wrap { height: 160px; }
+
+  .grafico-botoes { gap: 3px; }
+  .grafico-btn { font-size: 9px; padding: 4px 7px; }
+
+  .recomendacoes-panel { padding: 0.875rem; }
+
+  .footer-nav { gap: 5px; }
+}
+
+/* Telas acima de 1366px: layout mais largo */
+@media (min-width: 1366px) {
+  main { max-width: 1366px; }
+
+  .sensores-grid { grid-template-columns: repeat(4, 1fr); }
+
+  .header-center { display: flex; }
+
+  .grafico-wrap { height: 260px; }
+
+  .viveiro-info-grid { grid-template-columns: repeat(3, 1fr); }
+}

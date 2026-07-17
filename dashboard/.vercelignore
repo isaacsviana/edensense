@@ -1,0 +1,4 @@
+# Garante que o deploy no Vercel não herde o .gitignore da raiz do projeto,
+# que exclui config.js e firebase.js do controle de versão (git) mas que
+# PRECISAM ir para o site publicado — o dashboard roda no navegador e
+# carrega esses arquivos via <script>, então eles têm que estar no ar.
