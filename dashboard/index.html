@@ -5,9 +5,10 @@
   <!-- SEGURANÇA: Content Security Policy — limita origens permitidas de scripts, estilos e conexões -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self';
-                 script-src 'self' https://unpkg.com https://www.gstatic.com https://cdn.jsdelivr.net;
-                 connect-src 'self' wss://*.hivemq.cloud https://*.firebaseio.com https://firebaseio.com https://*.googleapis.com;
-                 style-src 'self' https://fonts.googleapis.com;
+                 script-src 'self' https://unpkg.com https://www.gstatic.com https://cdn.jsdelivr.net https://*.firebaseio.com;
+                 connect-src 'self' wss://*.hivemq.cloud:8884 https://*.firebaseio.com https://firebaseio.com wss://*.firebaseio.com https://*.googleapis.com;
+                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+                 worker-src 'self' blob:;
                  font-src https://fonts.gstatic.com;
                  img-src 'self' data:;">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
