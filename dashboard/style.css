@@ -698,7 +698,7 @@ main {
 
 
 /* ════════════════════════════
-   PAINÉIS (histórico e fita)
+   PAINÉIS (histórico)
    ════════════════════════════ */
 .panel {
   background: var(--bg2);
@@ -781,78 +781,6 @@ main {
   color: var(--text3);
   text-align: center;
   padding: 16px 8px;
-}
-
-
-/* ── Fita colorimétrica ── */
-.fita-section { display: flex; flex-direction: column; gap: 10px; }
-
-.fita-status {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  gap: 8px;
-}
-
-.fita-label {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--text2);
-}
-
-.fita-val {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--green);
-  text-align: right;
-}
-
-/* Badge de texto de alerta na fita (não depende só de cor) */
-.badge-alerta-texto {
-  font-size: 9px;
-  font-family: var(--mono);
-  font-weight: 700;
-  letter-spacing: 0.3px;
-}
-
-/* Botão de nova leitura */
-.btn-fita {
-  width: 100%;
-  padding: 12px;
-  background: rgba(0,232,122,0.08);
-  border: 1px solid rgba(0,232,122,0.25);
-  border-radius: 10px;
-  color: var(--green);
-  font-family: var(--display);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
-  letter-spacing: 0.5px;
-}
-
-.btn-fita:hover  { background: rgba(0,232,122,0.15); }
-.btn-fita:active { transform: scale(0.98); }
-.btn-fita:disabled { cursor: not-allowed; }
-
-/* Barra de progresso da fita (7 segundos de análise) */
-.fita-progress-wrap {
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.fita-progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--green2), var(--green));
-  border-radius: 2px;
-  transition: width 0.1s linear;
 }
 
 
@@ -997,9 +925,6 @@ footer {
 
   /* Título dos painéis */
   .panel-title { font-size: 12px; }
-
-  /* Botão fita */
-  .btn-fita { font-size: 12px; padding: 10px; }
 
   /* Barra silenciar */
   .barra-silenciar { padding: 8px 0.875rem; font-size: 12px; gap: 0.5rem; }
@@ -1311,44 +1236,100 @@ footer {
 }
 
 
-/* ── Fita: grid de resultados 2x2 ── */
-.fita-resultado {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
+/* ── Biometria semanal ── */
+.biometria-tabela-wrap { overflow-x: auto; margin-bottom: 1rem; }
 
-/* ── Fita: histórico ── */
-.fita-historico { margin-bottom: 8px; }
-
-.fita-hist-titulo {
+.biometria-tabela {
+  width: 100%;
+  border-collapse: collapse;
   font-family: var(--mono);
-  font-size: 9px;
-  color: var(--text3);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  margin-bottom: 6px;
+  font-size: 12px;
 }
 
-.fita-hist-lista { display: flex; flex-direction: column; gap: 4px; }
+.biometria-tabela th {
+  text-align: left;
+  color: var(--text3);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
 
-.fita-hist-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 5px 10px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+.biometria-tabela td {
+  color: var(--text);
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.biometria-tabela tbody tr:hover { background: var(--bg3); }
+.biometria-tabela tbody tr:last-child td { border-bottom: none; }
+
+.biometria-vazio {
+  display: none;
+  font-size: 12px;
+  color: var(--text3);
+  text-align: center;
+  padding: 16px 8px;
+}
+
+.biometria-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.biometria-campo { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+.biometria-campo label {
   font-family: var(--mono);
   font-size: 10px;
   color: var(--text2);
-  gap: 8px;
+  letter-spacing: 0.5px;
 }
 
-.fita-hist-hora { color: var(--text3); flex-shrink: 0; }
-.fita-hist-ph   { color: var(--green); flex-shrink: 0; }
+.biometria-campo input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  min-width: 0;
+}
+
+.biometria-campo input:focus {
+  outline: none;
+  border-color: var(--green2);
+}
+
+.btn-biometria {
+  padding: 10px 16px;
+  background: rgba(0,232,122,0.08);
+  border: 1px solid rgba(0,232,122,0.25);
+  border-radius: 10px;
+  color: var(--green);
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.btn-biometria:hover  { background: rgba(0,232,122,0.15); }
+.btn-biometria:active { transform: scale(0.98); }
+
+@media (max-width: 640px) {
+  .biometria-form { grid-template-columns: 1fr 1fr; }
+  .btn-biometria { grid-column: 1 / -1; }
+}
 
 
 /* ── Seção do Gráfico ── */
@@ -1561,7 +1542,6 @@ footer {
    ════════════════════════════ */
 @media (min-width: 768px) and (max-width: 1365px) {
   .header-center { display: none; } /* oculta relógio em tablet médio — preserva espaço */
-  .fita-resultado { grid-template-columns: 1fr 1fr; }
   .grafico-wrap { height: 200px; }
 }
 
@@ -1577,8 +1557,6 @@ footer {
 
   .historico-filtros { gap: 5px; }
   .filtro-btn { font-size: 9px; padding: 4px 8px; }
-
-  .fita-resultado { grid-template-columns: 1fr; }
 
   .grafico-section { padding: 1rem; }
   .grafico-wrap { height: 180px; }
@@ -1598,8 +1576,6 @@ footer {
   .sensor-icone { display: none; } /* ícone some para ganhar espaço */
 
   .sensor-tendencia { font-size: 14px; }
-
-  .fita-resultado { grid-template-columns: 1fr; }
 
   .viveiro-info-grid { grid-template-columns: 1fr; }
 

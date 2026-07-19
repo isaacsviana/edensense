@@ -29,7 +29,7 @@ const sensores = {
     cardId: 'card-ph', valId: 'val-ph', barId: 'bar-ph', alertaId: 'alerta-ph'
   },
   turb: {
-    val: 18, min: 0, max: 30,
+    val: 18, min: 0, max: 70,
     cardId: 'card-turb', valId: 'val-turb', barId: 'bar-turb', alertaId: 'alerta-turb'
   },
   sal: {
@@ -587,7 +587,7 @@ function atualizarStatusGeral(status) {
   if (status === 'verde') {
     if (valor)  valor.textContent  = 'NORMAL';
     if (qualTxt) qualTxt.textContent = 'NORMAL';
-    if (rec) rec.innerHTML = '<strong>Todos os parâmetros estão dentro dos limites ideais.</strong><br>Continue monitorando regularmente. Próxima leitura com fita recomendada em 6h.';
+    if (rec) rec.innerHTML = '<strong>Todos os parâmetros estão dentro dos limites ideais.</strong><br>Continue monitorando regularmente.';
     pararContadorAlertaTempo();
   } else if (status === 'amarelo') {
     if (valor)  valor.textContent  = 'ATENÇÃO';
@@ -664,7 +664,7 @@ function simularLeitura() {
   /* limites físicos realistas */
   sensores.temp.val = Math.max(20, Math.min(34, sensores.temp.val));
   sensores.ph.val   = Math.max(6.5, Math.min(9.0, sensores.ph.val));
-  sensores.turb.val = Math.max(0, Math.min(60, sensores.turb.val));
+  sensores.turb.val = Math.max(0, Math.min(70, sensores.turb.val));
   sensores.sal.val  = Math.max(5, Math.min(40, sensores.sal.val));
 
   atualizarValorNaTela('temp', sensores.temp.val.toFixed(1));
@@ -768,87 +768,6 @@ function atualizarFooter() {
 
 
 /* ════════════════════════════
-   BOTÃO DA FITA COLORIMÉTRICA
-   ════════════════════════════ */
-const fitaHistorico = [
-  { hora: '08:00', ph: '7.7', amonia: '0.3', resultado: 'ok' },
-  { hora: '02:00', ph: '7.5', amonia: '0.5', resultado: 'atencao' }
-];
-
-function renderFitaHistorico() {
-  const lista = document.getElementById('fitaHistLista');
-  if (!lista) return;
-
-  lista.innerHTML = fitaHistorico.map(h => {
-    const cor = h.resultado === 'ok' ? 'var(--green)' : 'var(--amber)';
-    return '<div class="fita-hist-item">' +
-      '<span class="fita-hist-hora">' + sanitizar(h.hora) + '</span>' +
-      '<span>pH ' + sanitizar(h.ph) + '</span>' +
-      '<span>NH₃ ' + sanitizar(h.amonia) + ' mg/L</span>' +
-      '<span class="fita-hist-ph" style="color:' + cor + '">' +
-        (h.resultado === 'ok' ? '✓ OK' : '⚠ Atenção') +
-      '</span>' +
-    '</div>';
-  }).join('');
-}
-
-function simularFita() {
-  const btn          = document.getElementById('btnFita');
-  const progressWrap = document.getElementById('fitaProgressWrap');
-  const progressBar  = document.getElementById('fitaProgressBar');
-
-  btn.disabled = true;
-  btn.style.opacity = '0.5';
-  btn.textContent = 'Aguardando reação da fita...';
-
-  if (progressWrap) progressWrap.style.display = 'block';
-  if (progressBar)  progressBar.style.width    = '0%';
-
-  const duracao = 7000;
-  const inicio  = Date.now();
-  const intervaloProgress = setInterval(() => {
-    const pct = Math.min(100, ((Date.now() - inicio) / duracao) * 100);
-    if (progressBar) progressBar.style.width = pct + '%';
-    if (pct >= 100)  clearInterval(intervaloProgress);
-  }, 50);
-
-  setTimeout(() => { btn.textContent = 'Capturando imagem...'; }, 3000);
-  setTimeout(() => { btn.textContent = 'Analisando cores...';  }, 5000);
-
-  setTimeout(() => {
-    clearInterval(intervaloProgress);
-    if (progressBar)  progressBar.style.width    = '100%';
-    if (progressWrap) progressWrap.style.display = 'none';
-
-    btn.textContent  = '+ Realizar nova leitura com fita';
-    btn.disabled     = false;
-    btn.style.opacity = '1';
-
-    const fitaUltima = document.getElementById('fitaUltima');
-    if (fitaUltima) fitaUltima.textContent = 'agora mesmo';
-
-    /* Adiciona ao histórico da fita */
-    const agora = new Date();
-    const hora  = String(agora.getHours()).padStart(2, '0') + ':' + String(agora.getMinutes()).padStart(2, '0');
-    fitaHistorico.unshift({ hora, ph: '7.7', amonia: '0.3', resultado: 'ok' });
-    if (fitaHistorico.length > 5) fitaHistorico.pop();
-    renderFitaHistorico();
-
-    historicoAlertas.unshift({
-      tipo: 'verde',
-      msg:  'Fita colorimétrica analisada. pH 7.7, amônia 0.3 mg/L.',
-      time: hora
-    });
-    if (historicoAlertas.length > MAX_HISTORICO) {
-      historicoAlertas = historicoAlertas.slice(0, MAX_HISTORICO);
-    }
-    renderAlertas(historicoAlertas);
-    atualizarFooter();
-  }, 7000);
-}
-
-
-/* ════════════════════════════
    BOTÃO TELA CHEIA
    ════════════════════════════ */
 function alternarFullscreen() {
@@ -905,6 +824,100 @@ function alternarEdicaoViveiro() {
 
 
 /* ════════════════════════════
+   BIOMETRIA SEMANAL
+   Registros de tamanho/peso do camarão,
+   salvos localmente no navegador (localStorage)
+   ════════════════════════════ */
+const BIOMETRIA_STORAGE_KEY = 'edensense_biometria';
+
+function carregarBiometria() {
+  try {
+    const bruto = localStorage.getItem(BIOMETRIA_STORAGE_KEY);
+    if (!bruto) return [];
+    const dados = JSON.parse(bruto);
+    return Array.isArray(dados) ? dados : [];
+  } catch (e) {
+    warn('Erro ao carregar biometria do localStorage:', e);
+    return [];
+  }
+}
+
+function salvarBiometriaStorage(lista) {
+  try {
+    localStorage.setItem(BIOMETRIA_STORAGE_KEY, JSON.stringify(lista));
+  } catch (e) {
+    warn('Erro ao salvar biometria no localStorage:', e);
+  }
+}
+
+let biometriaRegistros = carregarBiometria();
+
+function formatarDataBR(isoData) {
+  const partes = String(isoData).split('-');
+  if (partes.length !== 3) return String(isoData);
+  const [ano, mes, dia] = partes;
+  return dia + '/' + mes + '/' + ano;
+}
+
+function renderBiometria() {
+  const tbody = document.getElementById('biometriaTbody');
+  const vazio = document.getElementById('biometriaVazio');
+  if (!tbody) return;
+
+  if (biometriaRegistros.length === 0) {
+    tbody.innerHTML = '';
+    if (vazio) vazio.style.display = 'block';
+    return;
+  }
+  if (vazio) vazio.style.display = 'none';
+
+  /* Ordena por data crescente — o número da semana é a posição nessa ordem */
+  const ordenado = [...biometriaRegistros].sort((a, b) => String(a.data).localeCompare(String(b.data)));
+
+  tbody.innerHTML = ordenado.map((r, i) => {
+    const tamanho = Number(r.tamanho);
+    const peso    = Number(r.peso);
+    return '<tr>' +
+      '<td>' + sanitizar('Semana ' + (i + 1)) + '</td>' +
+      '<td>' + sanitizar(isNaN(tamanho) ? '—' : tamanho.toFixed(1)) + '</td>' +
+      '<td>' + sanitizar(isNaN(peso) ? '—' : peso.toFixed(1)) + '</td>' +
+      '<td>' + sanitizar(formatarDataBR(r.data)) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function registrarBiometria(tamanho, peso, data) {
+  biometriaRegistros.push({ tamanho, peso, data });
+  salvarBiometriaStorage(biometriaRegistros);
+  renderBiometria();
+}
+
+function inicializarBiometria() {
+  renderBiometria();
+
+  const form = document.getElementById('biometriaForm');
+  if (!form) return;
+
+  form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+
+    const tamanhoInput = document.getElementById('biometriaTamanho');
+    const pesoInput     = document.getElementById('biometriaPeso');
+    const dataInput     = document.getElementById('biometriaData');
+
+    const tamanho = parseFloat(tamanhoInput.value);
+    const peso    = parseFloat(pesoInput.value);
+    const data    = dataInput.value;
+
+    if (isNaN(tamanho) || tamanho < 0 || isNaN(peso) || peso < 0 || !data) return;
+
+    registrarBiometria(tamanho, peso, data);
+    form.reset();
+  });
+}
+
+
+/* ════════════════════════════
    TESTE DE PENETRAÇÃO (FASE 6)
    Valida resistência a XSS via
    injeção direta nos dados simulados
@@ -946,7 +959,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderAlertas(historicoAlertas);
   atualizarSensores();
   atualizarHora();
-  renderFitaHistorico();
+  inicializarBiometria();
 
   /* Banner mobile */
   mostrarBannerHomescreen();

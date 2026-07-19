@@ -46,16 +46,9 @@
     <!-- Logo com SVG IoT e subtítulo -->
     <div class="logo">
       <div class="logo-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none">
-          <!-- Folha -->
-          <path d="M12 2C15 5 18 9 17 14C16 17.5 13.5 19 12 20C10.5 19 8 17.5 7 14C6 9 9 5 12 2Z" fill="#00e87a" opacity="0.9"/>
-          <path d="M12 2L12 20" stroke="#005c30" stroke-width="1.2" stroke-linecap="round"/>
-          <path d="M11 9Q14 12 15 14" stroke="#005c30" stroke-width="0.9" stroke-linecap="round" fill="none" opacity="0.6"/>
-          <!-- Sinal IoT (arcos) -->
-          <path d="M16 1Q18.5 2.5 18.5 4Q18.5 5.5 16 7" stroke="#00b85f" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.8"/>
-          <path d="M17 2.2Q20 3.8 20 5.5Q20 7.2 17 8.8" stroke="#00e87a" stroke-width="0.8" fill="none" stroke-linecap="round" opacity="0.5"/>
-          <circle cx="15.5" cy="4" r="1" fill="#00e87a"/>
-        </svg>
+        <img src="assets/logo.png"
+             alt="EdenSense"
+             style="width:36px;height:36px;object-fit:contain;border-radius:8px">
       </div>
       <div class="logo-texto">
         <span class="logo-name">Eden<span>Sense</span></span>
@@ -137,7 +130,7 @@
       </div>
       <div class="status-rec" id="statusRec">
         <strong>Todos os parâmetros estão dentro dos limites ideais.</strong><br>
-        Continue monitorando regularmente. Próxima leitura com fita recomendada em 6h.
+        Continue monitorando regularmente.
       </div>
       <div class="status-time" id="statusTime"></div>
     </div>
@@ -240,8 +233,8 @@
           <span class="sensor-valor" id="val-turb">18</span>
           <span class="sensor-unidade">NTU</span>
         </div>
-        <div class="sensor-faixa">FAIXA IDEAL: 0 – 30 NTU</div>
-        <div class="sensor-bar" role="progressbar" aria-label="Turbidez na faixa ideal" aria-valuemin="0" aria-valuemax="30">
+        <div class="sensor-faixa">FAIXA IDEAL: 0 – 70 NTU</div>
+        <div class="sensor-bar" role="progressbar" aria-label="Turbidez na faixa ideal" aria-valuemin="0" aria-valuemax="70">
           <div class="sensor-bar-fill" id="bar-turb" style="width:35%"></div>
         </div>
         <canvas class="sensor-sparkline" id="spark-turb" width="320" height="56" aria-hidden="true"></canvas>
@@ -289,6 +282,46 @@
     </div>
 
 
+    <!-- BIOMETRIA SEMANAL -->
+    <div class="section-label">// biometria semanal</div>
+    <div class="panel" id="panelBiometria">
+      <div class="panel-title">
+        🦐 Biometria Semanal
+      </div>
+
+      <div class="biometria-tabela-wrap">
+        <table class="biometria-tabela">
+          <thead>
+            <tr>
+              <th>Semana</th>
+              <th>Tamanho (cm)</th>
+              <th>Peso (g)</th>
+              <th>Data</th>
+            </tr>
+          </thead>
+          <tbody id="biometriaTbody"></tbody>
+        </table>
+        <div class="biometria-vazio" id="biometriaVazio">Nenhuma medição registrada ainda.</div>
+      </div>
+
+      <form class="biometria-form" id="biometriaForm">
+        <div class="biometria-campo">
+          <label for="biometriaTamanho">Tamanho (cm)</label>
+          <input type="number" step="0.1" min="0" id="biometriaTamanho" placeholder="12.5" required>
+        </div>
+        <div class="biometria-campo">
+          <label for="biometriaPeso">Peso (g)</label>
+          <input type="number" step="0.1" min="0" id="biometriaPeso" placeholder="8.2" required>
+        </div>
+        <div class="biometria-campo">
+          <label for="biometriaData">Data</label>
+          <input type="date" id="biometriaData" required>
+        </div>
+        <button type="submit" class="btn-biometria">+ Registrar medição</button>
+      </form>
+    </div>
+
+
     <!-- PAINEL DE RECOMENDAÇÕES AUTOMÁTICAS -->
     <div class="section-label">// recomendações automáticas</div>
     <div class="recomendacoes-panel" id="recomendacoesPanel">
@@ -310,8 +343,8 @@
     </div>
 
 
-    <!-- SEÇÃO INFERIOR: HISTÓRICO + FITA -->
-    <div class="section-label">// histórico e visão computacional</div>
+    <!-- SEÇÃO INFERIOR: HISTÓRICO -->
+    <div class="section-label">// histórico de alertas</div>
     <div class="bottom-grid">
 
       <!-- Painel de histórico com filtros por tipo -->
@@ -340,57 +373,6 @@
         </div>
         <!-- Lista de alertas em formato timeline -->
         <div class="alert-list" id="alertList" role="log" aria-label="Lista de alertas recentes" aria-live="polite"></div>
-      </div>
-
-      <!-- Painel da fita colorimétrica MELHORADO -->
-      <div class="panel">
-        <div class="panel-title">
-          Fita colorimétrica
-          <span style="font-family:var(--mono);font-size:10px;color:var(--text3);font-weight:400">ESP32-CAM</span>
-        </div>
-        <div class="fita-section">
-
-          <!-- Resultado atual da fita -->
-          <div class="fita-resultado" id="fitaResultado">
-            <div class="fita-status">
-              <div class="fita-label">Última leitura</div>
-              <div class="fita-val" id="fitaUltima">há 4h 22min</div>
-            </div>
-            <div class="fita-status">
-              <div class="fita-label">pH (fita)</div>
-              <div class="fita-val">7.6</div>
-            </div>
-            <div class="fita-status">
-              <div class="fita-label">Amônia (fita)</div>
-              <div class="fita-val" style="color:var(--amber)">
-                <span aria-hidden="true">&#9888;</span> 0.5 mg/L
-                <span class="badge-alerta-texto" aria-label="Atenção">[ATENCAO]</span>
-              </div>
-            </div>
-            <div class="fita-status">
-              <div class="fita-label">Nitrato (fita)</div>
-              <div class="fita-val">5 mg/L</div>
-            </div>
-          </div>
-
-          <!-- Histórico das últimas leituras da fita -->
-          <div class="fita-historico">
-            <div class="fita-hist-titulo">Últimas leituras</div>
-            <div class="fita-hist-lista" id="fitaHistLista">
-              <!-- Preenchido por app.js -->
-            </div>
-          </div>
-
-          <button class="btn-fita" id="btnFita" onclick="simularFita()"
-                  aria-label="Realizar nova leitura colorimétrica com a fita ESP32-CAM">
-            + Realizar nova leitura com fita
-          </button>
-
-          <!-- Barra de progresso dos 7 segundos de análise -->
-          <div class="fita-progress-wrap" id="fitaProgressWrap" style="display:none" aria-hidden="true">
-            <div class="fita-progress-bar" id="fitaProgressBar" style="width:0%"></div>
-          </div>
-        </div>
       </div>
 
     </div>

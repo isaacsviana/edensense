@@ -15,6 +15,12 @@ dashboard/firebase.js
 # Arquivo de variáveis de ambiente do bot
 bot/.env
 
+# Backups locais — cópias soltas de pastas com credenciais (config.js,
+# firebase.js) que não são cobertas pelas regras acima por causa do
+# path diferente. Nunca versionar.
+dashboard_backup/
+*_backup/
+
 # Histórico de alertas gerado em tempo de execução
 bot/alertas_log.json
 alertas_log.json

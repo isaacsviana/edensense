@@ -34,7 +34,7 @@
   const LIMITES = {
     temp: { min: 23,  max: 30,  cor: '#00e87a', nome: 'Temperatura (°C)',   decimais: 1 },
     ph:   { min: 7.5, max: 8.5, cor: '#3dd9ff', nome: 'pH',                 decimais: 1 },
-    turb: { min: 0,   max: 30,  cor: '#f5a623', nome: 'Turbidez (NTU)',      decimais: 0 },
+    turb: { min: 0,   max: 70,  cor: '#f5a623', nome: 'Turbidez (NTU)',      decimais: 0 },
     sal:  { min: 10,  max: 35,  cor: '#c084fc', nome: 'Salinidade (ppt)',    decimais: 1 }
   };
 

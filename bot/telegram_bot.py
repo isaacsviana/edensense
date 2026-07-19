@@ -448,7 +448,10 @@ def ao_receber_mensagem(client, userdata, message):
 
 def iniciar_mqtt(bot: Bot) -> None:
     """Cria o cliente MQTT e inicia em thread separada."""
-    cliente = mqtt.Client(client_id="edensense-telegram-" + datetime.now().strftime("%H%M%S"))
+    cliente = mqtt.Client(
+        callback_api_version=mqtt.CallbackAPIVersion.VERSION1,
+        client_id="edensense-telegram-" + datetime.now().strftime("%H%M%S"),
+    )
     cliente.username_pw_set(MQTT_USUARIO, MQTT_SENHA)
 
     # TLS obrigatório no HiveMQ Cloud (porta 8883)

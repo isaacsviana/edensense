@@ -26,7 +26,7 @@ function _err(...a)  { console.error('[MQTT]', ...a); } // erros sempre visívei
 const FAIXAS_VALIDAS = {
   temperatura: { min: -10,  max: 100  },
   ph:          { min: 0,    max: 14   },
-  turbidez:    { min: 0,    max: 3000 },
+  turbidez:    { min: 0,    max: 70   },
   salinidade:  { min: 0,    max: 60   },
 };
 
