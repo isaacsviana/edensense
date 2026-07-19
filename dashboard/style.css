@@ -248,16 +248,11 @@ header {
 .logo-icon {
   width: 36px;
   height: 36px;
-  background: var(--green3);
-  border: 1px solid var(--green2);
-  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
-
-.logo-icon svg { width: 20px; height: 20px; }
 
 .logo-name {
   font-size: 20px;
@@ -901,7 +896,6 @@ footer {
   /* Logo ainda menor */
   .logo-name { font-size: 16px; }
   .logo-icon { width: 30px; height: 30px; }
-  .logo-icon svg { width: 16px; height: 16px; }
 
   header { padding: 0.75rem 0.875rem; }
 
@@ -1267,6 +1261,29 @@ footer {
 
 .biometria-tabela tbody tr:hover { background: var(--bg3); }
 .biometria-tabela tbody tr:last-child td { border-bottom: none; }
+
+.btn-apagar-biometria {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(255,68,68,0.35);
+  border-radius: 6px;
+  color: var(--red);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-apagar-biometria:hover,
+.btn-apagar-biometria:focus-visible {
+  background: var(--red);
+  color: #fff;
+  outline: none;
+}
 
 .biometria-vazio {
   display: none;

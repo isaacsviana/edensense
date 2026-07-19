@@ -875,15 +875,37 @@ function renderBiometria() {
   const ordenado = [...biometriaRegistros].sort((a, b) => String(a.data).localeCompare(String(b.data)));
 
   tbody.innerHTML = ordenado.map((r, i) => {
-    const tamanho = Number(r.tamanho);
-    const peso    = Number(r.peso);
+    const tamanho  = Number(r.tamanho);
+    const peso     = Number(r.peso);
+    const semana   = i + 1;
+    /* Índice no array original — usado para apagar o registro certo,
+       já que "ordenado" é só uma cópia reordenada para exibição */
+    const indiceOriginal = biometriaRegistros.indexOf(r);
     return '<tr>' +
-      '<td>' + sanitizar('Semana ' + (i + 1)) + '</td>' +
+      '<td>' + sanitizar('Semana ' + semana) + '</td>' +
       '<td>' + sanitizar(isNaN(tamanho) ? '—' : tamanho.toFixed(1)) + '</td>' +
       '<td>' + sanitizar(isNaN(peso) ? '—' : peso.toFixed(1)) + '</td>' +
       '<td>' + sanitizar(formatarDataBR(r.data)) + '</td>' +
+      '<td>' +
+        '<button type="button" class="btn-apagar-biometria" ' +
+          'data-indice="' + indiceOriginal + '" data-semana="' + semana + '" ' +
+          'aria-label="Apagar medição da Semana ' + semana + '" title="Apagar medição">' +
+          '🗑️' +
+        '</button>' +
+      '</td>' +
     '</tr>';
   }).join('');
+}
+
+function apagarBiometria(indice, semana) {
+  const confirmado = confirm(
+    'Tem certeza que deseja apagar a medição da Semana ' + semana + '? Esta ação não pode ser desfeita.'
+  );
+  if (!confirmado) return;
+
+  biometriaRegistros.splice(indice, 1);
+  salvarBiometriaStorage(biometriaRegistros);
+  renderBiometria();
 }
 
 function registrarBiometria(tamanho, peso, data) {
@@ -894,6 +916,19 @@ function registrarBiometria(tamanho, peso, data) {
 
 function inicializarBiometria() {
   renderBiometria();
+
+  /* Delegação de evento — funciona para qualquer linha, inclusive
+     as adicionadas depois da renderização inicial */
+  const tbody = document.getElementById('biometriaTbody');
+  if (tbody) {
+    tbody.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('.btn-apagar-biometria');
+      if (!btn) return;
+      const indice = parseInt(btn.dataset.indice, 10);
+      const semana = btn.dataset.semana;
+      if (!isNaN(indice)) apagarBiometria(indice, semana);
+    });
+  }
 
   const form = document.getElementById('biometriaForm');
   if (!form) return;
